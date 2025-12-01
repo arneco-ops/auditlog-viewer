@@ -1,0 +1,260 @@
+<mvc:View
+  controllerName="auditviewer.controller.Main"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:core="sap.ui.core"
+  xmlns:l="sap.ui.layout"
+  xmlns:f="sap.ui.layout.form"
+  xmlns:table="sap.ui.table">
+  
+  <Page
+    id="page"
+    title="Audit Log Viewer"
+    showNavButton="false">
+    
+    <content>
+      <l:VerticalLayout width="100%">
+        
+        <!-- Credentials Management Section -->
+        <Panel
+          headerText="Credentials Management"
+          expandable="true"
+          expanded="false"
+          width="100%"
+          class="sapUiSmallMargin">
+          <content>
+            <VBox class="sapUiSmallMargin">
+              <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                <Button
+                  text="Add Credentials"
+                  icon="sap-icon://add"
+                  press="onAddCredentials"
+                  type="Emphasized"/>
+                <Button
+                  text="Refresh"
+                  icon="sap-icon://refresh"
+                  press="onRefreshCredentials"
+                  class="sapUiTinyMarginBegin"/>
+              </HBox>
+              
+              <Table
+                id="credentialsTable"
+                items="{/Credentials}"
+                mode="SingleSelectMaster"
+                selectionChange="onCredentialSelect">
+                <columns>
+                  <Column width="12em">
+                    <Text text="Name"/>
+                  </Column>
+                  <Column minScreenWidth="Tablet">
+                    <Text text="URL"/>
+                  </Column>
+                  <Column width="8em" minScreenWidth="Tablet">
+                    <Text text="Client ID"/>
+                  </Column>
+                  <Column width="5em">
+                    <Text text="Active"/>
+                  </Column>
+                  <Column width="10em">
+                    <Text text="Actions"/>
+                  </Column>
+                </columns>
+                <items>
+                  <ColumnListItem>
+                    <cells>
+                      <Text text="{name}"/>
+                      <Text text="{url}"/>
+                      <Text text="{clientId}"/>
+                      <Switch
+                        state="{isActive}"
+                        enabled="false"/>
+                      <HBox>
+                        <Button
+                          icon="sap-icon://edit"
+                          type="Transparent"
+                          press="onEditCredentials"/>
+                        <Button
+                          icon="sap-icon://delete"
+                          type="Transparent"
+                          press="onDeleteCredentials"/>
+                        <Button
+                          icon="sap-icon://connected"
+                          type="Transparent"
+                          press="onTestCredentials"
+                          tooltip="Test Connection"/>
+                      </HBox>
+                    </cells>
+                  </ColumnListItem>
+                </items>
+              </Table>
+            </VBox>
+          </content>
+        </Panel>
+        
+        <!-- Audit Log Fetch Section -->
+        <Panel
+          headerText="Fetch Audit Logs"
+          width="100%"
+          class="sapUiSmallMargin">
+          <content>
+            <f:SimpleForm
+              editable="true"
+              layout="ResponsiveGridLayout"
+              labelSpanXL="3"
+              labelSpanL="3"
+              labelSpanM="3"
+              labelSpanS="12"
+              adjustLabelSpan="false"
+              emptySpanXL="4"
+              emptySpanL="4"
+              emptySpanM="4"
+              emptySpanS="0"
+              columnsXL="1"
+              columnsL="1"
+              columnsM="1"
+              singleContainerFullSize="false"
+              class="sapUiSmallMargin">
+              <f:content>
+                <Label text="Credential" required="true"/>
+                <Select
+                  id="credentialSelect"
+                  items="{/Credentials}"
+                  selectedKey="{view>/selectedCredential}">
+                  <core:Item key="{ID}" text="{name}"/>
+                </Select>
+                
+                <Label text="From Date"/>
+                <DateTimePicker
+                  id="fromDate"
+                  value="{view>/fromDate}"
+                  displayFormat="medium"/>
+                
+                <Label text="To Date"/>
+                <DateTimePicker
+                  id="toDate"
+                  value="{view>/toDate}"
+                  displayFormat="medium"/>
+                
+                <Label text="Max Results"/>
+                <StepInput
+                  id="maxResults"
+                  value="{view>/maxResults}"
+                  min="1"
+                  max="1000"
+                  step="10"
+                  width="150px"/>
+                
+                <Label text=""/>
+                <HBox>
+                  <Button
+                    text="Fetch Audit Logs"
+                    icon="sap-icon://download"
+                    press="onFetchAuditLogs"
+                    type="Emphasized"
+                    enabled="{= ${view>/selectedCredential} !== null}"/>
+                  <Button
+                    text="Clear Results"
+                    icon="sap-icon://clear-filter"
+                    press="onClearResults"
+                    class="sapUiTinyMarginBegin"/>
+                </HBox>
+              </f:content>
+            </f:SimpleForm>
+          </content>
+        </Panel>
+        
+        <!-- Audit Logs Display Section -->
+        <Panel
+          headerText="Audit Logs ({view>/auditLogs/length} records)"
+          width="100%"
+          class="sapUiSmallMargin">
+          <content>
+            <table:Table
+              id="auditLogsTable"
+              rows="{view>/auditLogs}"
+              selectionMode="None"
+              visibleRowCount="15"
+              enableColumnReordering="true"
+              filter="onFilterAuditLogs"
+              width="100%"
+              busy="{view>/busy}">
+              
+              <table:extension>
+                <OverflowToolbar>
+                  <Title text="Results" level="H2"/>
+                  <ToolbarSpacer/>
+                  <Button
+                    icon="sap-icon://excel-attachment"
+                    text="Export"
+                    press="onExportToExcel"/>
+                </OverflowToolbar>
+              </table:extension>
+              
+              <table:columns>
+                <table:Column width="11rem" sortProperty="time" filterProperty="time">
+                  <Label text="Timestamp"/>
+                  <table:template>
+                    <Text text="{view>time}" wrapping="false"/>
+                  </table:template>
+                </table:Column>
+                
+                <table:Column width="10rem" sortProperty="user" filterProperty="user">
+                  <Label text="User"/>
+                  <table:template>
+                    <Text text="{view>user}" wrapping="false"/>
+                  </table:template>
+                </table:Column>
+                
+                <table:Column width="10rem" sortProperty="tenant" filterProperty="tenant">
+                  <Label text="Tenant"/>
+                  <table:template>
+                    <Text text="{view>tenant}" wrapping="false"/>
+                  </table:template>
+                </table:Column>
+                
+                <table:Column width="8rem" sortProperty="category" filterProperty="category">
+                  <Label text="Category"/>
+                  <table:template>
+                    <Text text="{view>category}" wrapping="false"/>
+                  </table:template>
+                </table:Column>
+                
+                <table:Column width="10rem" sortProperty="object" filterProperty="object">
+                  <Label text="Object"/>
+                  <table:template>
+                    <Text text="{view>object}" wrapping="false"/>
+                  </table:template>
+                </table:Column>
+                
+                <table:Column width="8rem" sortProperty="action" filterProperty="action">
+                  <Label text="Action"/>
+                  <table:template>
+                    <Text text="{view>action}" wrapping="false"/>
+                  </table:template>
+                </table:Column>
+                
+                <table:Column width="7rem" sortProperty="status" filterProperty="status">
+                  <Label text="Status"/>
+                  <table:template>
+                    <ObjectStatus
+                      text="{view>status}"
+                      state="{= ${view>status} === 'success' ? 'Success' : 'Error'}"/>
+                  </table:template>
+                </table:Column>
+                
+                <table:Column sortProperty="message" filterProperty="message">
+                  <Label text="Message"/>
+                  <table:template>
+                    <Text text="{view>message}"/>
+                  </table:template>
+                </table:Column>
+              </table:columns>
+            </table:Table>
+          </content>
+        </Panel>
+        
+      </l:VerticalLayout>
+    </content>
+  </Page>
+  
+</mvc:View>
