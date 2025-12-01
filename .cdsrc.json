@@ -1,1 +1,10 @@
-{}
+{
+  "build": {
+    "target": "."
+  },
+  "[production]": {
+    "build": {
+      "target": "gen"
+    }
+  }
+}

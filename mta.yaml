@@ -1,0 +1,87 @@
+_schema-version: "3.2"
+ID: auditlog-viewer
+version: 1.0.0
+description: "SAP CAP Audit Log Viewer Application"
+
+parameters:
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+
+modules:
+  # --------------------- SERVER MODULE -----------------------
+  - name: auditlog-viewer-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 512M
+    build-parameters:
+      builder: npm
+      ignore:
+        - "node_modules/"
+    requires:
+      - name: auditlog-viewer-db
+      - name: auditlog-viewer-auth
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+
+  # --------------------- DB DEPLOYER MODULE ------------------
+  - name: auditlog-viewer-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 512M
+    requires:
+      - name: auditlog-viewer-db
+
+  # --------------------- UI MODULE ---------------------------
+  - name: auditlog-viewer-app
+    type: approuter.nodejs
+    path: app/audit-viewer
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 256M
+      keep-existing-routes: true
+    build-parameters:
+      builder: npm
+      ignore:
+        - "node_modules/"
+    requires:
+      - name: auditlog-viewer-auth
+      - name: srv-api
+        group: destinations
+        properties:
+          name: srv-api
+          url: ~{srv-url}
+          forwardAuthToken: true
+
+resources:
+  # --------------------- HANA SERVICE ------------------------
+  - name: auditlog-viewer-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+
+  # --------------------- XSUAA SERVICE -----------------------
+  - name: auditlog-viewer-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: auditlog-viewer-${org}-${space}
+        tenant-mode: dedicated

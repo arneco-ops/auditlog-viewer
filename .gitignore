@@ -1,3 +1,26 @@
-node_modules
-node_modules
-node_modules
+# Dependencies
+node_modules/
+
+# Build output
+gen/
+dist/
+*.mtar
+
+# Database files (local development)
+*.db
+*.sqlite
+
+# IDE
+.idea/
+*.iml
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# MTA archives
+mta_archives/

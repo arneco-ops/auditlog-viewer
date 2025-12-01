@@ -1,14 +1,17 @@
 {
   "name": "audit-log-viewer",
   "version": "1.0.0",
-  "description": "A simple CAP project.",
+  "description": "SAP CAP Audit Log Viewer Application",
   "repository": "<Add your repository here>",
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "@sap/cds": "^6",
+    "@sap/cds": "^7",
+    "@sap/cds-hana": "^2",
+    "@sap/xssec": "^3",
     "express": "^4",
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "passport": "^0.7"
   },
   "devDependencies": {
     "@sap/cds-dk": "^7",
@@ -19,7 +22,11 @@
   "scripts": {
     "start": "cds-serve",
     "watch": "cds watch",
-    "watch-audit-viewer": "cds watch --open audit-viewer/webapp/index.html"
+    "watch-audit-viewer": "cds watch --open audit-viewer/webapp/index.html",
+    "build": "cds build --production"
+  },
+  "engines": {
+    "node": "^18 || ^20"
   },
   "cds": {
     "requires": {
@@ -27,8 +34,19 @@
         "kind": "sqlite",
         "credentials": {
           "database": "db.sqlite"
+        },
+        "[production]": {
+          "kind": "hana"
+        }
+      },
+      "auth": {
+        "[production]": {
+          "kind": "xsuaa"
         }
       }
+    },
+    "hana": {
+      "deploy-format": "hdbtable"
     }
   }
 }

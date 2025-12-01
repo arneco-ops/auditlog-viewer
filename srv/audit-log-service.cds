@@ -1,6 +1,7 @@
 using { auditlog.viewer as db } from '../db/schema';
 
 @path: '/api/audit-log'
+@requires: 'authenticated-user'
 service AuditLogService {
   
   /**

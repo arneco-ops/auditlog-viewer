@@ -1,0 +1,14 @@
+{
+  "name": "auditlog-viewer-app",
+  "version": "1.0.0",
+  "description": "Audit Log Viewer UI5 Application",
+  "scripts": {
+    "start": "node node_modules/@sap/approuter/approuter.js"
+  },
+  "dependencies": {
+    "@sap/approuter": "^14"
+  },
+  "engines": {
+    "node": "^18 || ^20"
+  }
+}

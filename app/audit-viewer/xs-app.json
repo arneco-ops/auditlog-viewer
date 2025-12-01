@@ -1,0 +1,25 @@
+{
+  "welcomeFile": "/webapp/index.html",
+  "authenticationMethod": "route",
+  "routes": [
+    {
+      "source": "^/api/audit-log/(.*)$",
+      "target": "/api/audit-log/$1",
+      "destination": "srv-api",
+      "authenticationType": "xsuaa",
+      "csrfProtection": true
+    },
+    {
+      "source": "^/webapp/(.*)$",
+      "target": "/webapp/$1",
+      "localDir": ".",
+      "authenticationType": "xsuaa"
+    },
+    {
+      "source": "^(.*)$",
+      "target": "/webapp/$1",
+      "localDir": ".",
+      "authenticationType": "xsuaa"
+    }
+  ]
+}
