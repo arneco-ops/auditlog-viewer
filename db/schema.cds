@@ -3,8 +3,9 @@ namespace auditlog.viewer;
 using { cuid, managed } from '@sap/cds/common';
 
 /**
- * Entity to store Audit Log Service credentials
+ * Entity to store Audit Log Service credentials (in-memory only)
  */
+@cds.persistence.skip
 entity Credentials : cuid, managed {
   name          : String(100) @title: 'Configuration Name';
   url           : String(500) @title: 'Audit Log Service URL';

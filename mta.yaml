@@ -29,7 +29,6 @@ modules:
       ignore:
         - "node_modules/"
     requires:
-      - name: auditlog-viewer-db
       - name: auditlog-viewer-auth
       - name: auditlog-viewer-destination
     provides:
@@ -63,13 +62,6 @@ modules:
           timeout: 60000
 
 resources:
-  # --------------------- POSTGRESQL SERVICE ------------------
-  - name: auditlog-viewer-db
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: postgresql
-      service-plan: trial
-
   # --------------------- XSUAA SERVICE -----------------------
   - name: auditlog-viewer-auth
     type: org.cloudfoundry.managed-service
