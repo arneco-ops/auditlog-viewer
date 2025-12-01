@@ -23,7 +23,9 @@
     "start": "cds-serve",
     "watch": "cds watch",
     "watch-audit-viewer": "cds watch --open audit-viewer/webapp/index.html",
-    "build": "cds build --production"
+    "build": "cds build --production",
+    "build:mta": "mbt build",
+    "deploy": "cf deploy mta_archives/auditlog-viewer_1.0.0.mtar"
   },
   "engines": {
     "node": "^18 || ^20"

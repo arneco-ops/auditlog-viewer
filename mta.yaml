@@ -22,6 +22,8 @@ modules:
       buildpack: nodejs_buildpack
       memory: 256M
       disk-quota: 512M
+      health-check-type: http
+      health-check-http-endpoint: /
     build-parameters:
       builder: npm
       ignore:
@@ -29,6 +31,7 @@ modules:
     requires:
       - name: auditlog-viewer-db
       - name: auditlog-viewer-auth
+      - name: auditlog-viewer-destination
     provides:
       - name: srv-api
         properties:
@@ -60,12 +63,14 @@ modules:
         - "node_modules/"
     requires:
       - name: auditlog-viewer-auth
+      - name: auditlog-viewer-destination
       - name: srv-api
         group: destinations
         properties:
           name: srv-api
           url: ~{srv-url}
           forwardAuthToken: true
+          timeout: 60000
 
 resources:
   # --------------------- HANA SERVICE ------------------------
@@ -85,3 +90,16 @@ resources:
       config:
         xsappname: auditlog-viewer-${org}-${space}
         tenant-mode: dedicated
+
+  # --------------------- DESTINATION SERVICE -----------------
+  - name: auditlog-viewer-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            existing_destinations_policy: update
+            destinations: []
