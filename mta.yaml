@@ -11,7 +11,7 @@ build-parameters:
     - builder: custom
       commands:
         - npm ci
-        - npx cds build --production
+        - npx cds build --production --for nodejs
 
 modules:
   # --------------------- SERVER MODULE -----------------------
@@ -37,16 +37,6 @@ modules:
         properties:
           srv-url: ${default-url}
 
-  # --------------------- DB DEPLOYER MODULE ------------------
-  - name: auditlog-viewer-db-deployer
-    type: hdb
-    path: gen/db
-    parameters:
-      buildpack: nodejs_buildpack
-      memory: 256M
-      disk-quota: 512M
-    requires:
-      - name: auditlog-viewer-db
 
   # --------------------- UI MODULE ---------------------------
   - name: auditlog-viewer-app
@@ -73,12 +63,12 @@ modules:
           timeout: 60000
 
 resources:
-  # --------------------- HANA SERVICE ------------------------
+  # --------------------- POSTGRESQL SERVICE ------------------
   - name: auditlog-viewer-db
-    type: com.sap.xs.hdi-container
+    type: org.cloudfoundry.managed-service
     parameters:
-      service: hana
-      service-plan: hdi-shared
+      service: postgresql
+      service-plan: trial
 
   # --------------------- XSUAA SERVICE -----------------------
   - name: auditlog-viewer-auth
