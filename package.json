@@ -10,8 +10,7 @@
     "@sap/xssec": "^3",
     "express": "^4",
     "axios": "^1.6.0",
-    "passport": "^0.7",
-    "sqlite3": "^5"
+    "passport": "^0.7"
   },
   "devDependencies": {
     "@sap/cds-dk": "^7",
@@ -32,9 +31,7 @@
   },
   "cds": {
     "requires": {
-      "db": {
-        "kind": "sql"
-      },
+      "db": false,
       "auth": {
         "[production]": {
           "kind": "xsuaa"

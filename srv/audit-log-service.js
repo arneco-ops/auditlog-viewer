@@ -1,6 +1,9 @@
 const cds = require('@sap/cds');
 const axios = require('axios');
 
+// In-memory storage for credentials
+const credentialsStore = new Map();
+
 module.exports = async function() {
   const { Credentials, AuditLogs } = this.entities;
 
@@ -30,14 +33,83 @@ module.exports = async function() {
   }
 
   /**
+   * READ handler for Credentials (from memory)
+   */
+  this.on('READ', 'Credentials', async (req) => {
+    return Array.from(credentialsStore.values());
+  });
+
+  /**
+   * CREATE handler for Credentials (to memory)
+   */
+  this.on('CREATE', 'Credentials', async (req) => {
+    const { name, url, clientId, clientSecret, authUrl, isActive } = req.data;
+    
+    // Validate required fields
+    if (!url || !clientId || !clientSecret || !authUrl) {
+      req.error(400, 'All credential fields are required: URL, Client ID, Client Secret, and Auth URL');
+      return;
+    }
+    
+    const id = `credential-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const credential = {
+      ID: id,
+      name: name || 'Default Configuration',
+      url,
+      clientId,
+      clientSecret,
+      authUrl,
+      isActive: credentialsStore.size === 0 ? true : (isActive || false),
+      createdAt: new Date().toISOString(),
+      modifiedAt: new Date().toISOString()
+    };
+    
+    credentialsStore.set(id, credential);
+    return credential;
+  });
+
+  /**
+   * UPDATE handler for Credentials (in memory)
+   */
+  this.on('UPDATE', 'Credentials', async (req) => {
+    const id = req.data.ID;
+    const existing = credentialsStore.get(id);
+    
+    if (!existing) {
+      req.error(404, 'Credential configuration not found');
+      return;
+    }
+    
+    const updated = {
+      ...existing,
+      ...req.data,
+      ID: id, // Keep original ID
+      modifiedAt: new Date().toISOString()
+    };
+    
+    credentialsStore.set(id, updated);
+    return updated;
+  });
+
+  /**
+   * DELETE handler for Credentials (from memory)
+   */
+  this.on('DELETE', 'Credentials', async (req) => {
+    const id = req.params[0];
+    if (credentialsStore.has(id)) {
+      credentialsStore.delete(id);
+    }
+  });
+
+  /**
    * Function to test credentials
    */
   this.on('testCredentials', async (req) => {
     const { credentialId } = req.data;
     
     try {
-      // Get credential from database
-      const credential = await SELECT.one.from(Credentials).where({ ID: credentialId });
+      // Get credential from memory
+      const credential = credentialsStore.get(credentialId);
       
       if (!credential) {
         return {
@@ -84,8 +156,8 @@ module.exports = async function() {
     const { credentialId, fromDate, toDate, maxResults } = req.data;
     
     try {
-      // Get credential from database
-      const credential = await SELECT.one.from(Credentials).where({ ID: credentialId });
+      // Get credential from memory
+      const credential = credentialsStore.get(credentialId);
       
       if (!credential) {
         req.error(404, 'Credential configuration not found');
@@ -132,24 +204,4 @@ module.exports = async function() {
     }
   });
 
-  /**
-   * Before creating/updating credentials, validate required fields
-   */
-  this.before(['CREATE', 'UPDATE'], 'Credentials', (req) => {
-    const { url, clientId, clientSecret, authUrl } = req.data;
-    
-    if (!url || !clientId || !clientSecret || !authUrl) {
-      req.error(400, 'All credential fields are required: URL, Client ID, Client Secret, and Auth URL');
-    }
-  });
-
-  /**
-   * After creating credentials, set as active if it's the first one
-   */
-  this.after('CREATE', 'Credentials', async (data, req) => {
-    const count = await SELECT.from(Credentials).where({ isActive: true });
-    if (count.length === 0) {
-      await UPDATE(Credentials).set({ isActive: true }).where({ ID: data.ID });
-    }
-  });
 }
